@@ -13,7 +13,7 @@ spec:
       values: |
         awsRegion: eu-west-1
         autoDiscovery:
-          clusterName: shviki-eks
+          clusterName: shviki-fitness-prod-eks
         
         # Use existing SA created by Terraform (with IRSA)
         serviceAccount:
@@ -25,7 +25,6 @@ spec:
             create: false
             name: cluster-autoscaler
 
-        # Recommended for EKS
         extraArgs:
           skip-nodes-with-local-storage: "false"
           skip-nodes-with-system-pods: "false"
