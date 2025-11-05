@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://github.com/kingofgrow/shviki-fitness
     targetRevision: main
-    path: helm-chart
+    path: helm/helm-chart   # 👈 matches your real folder structure
 
   destination:
     server: https://kubernetes.default.svc
