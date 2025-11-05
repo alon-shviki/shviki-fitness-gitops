@@ -11,16 +11,30 @@ spec:
     targetRevision: 9.29.1
     helm:
       values: |
+        awsRegion: eu-west-1
         autoDiscovery:
           clusterName: shviki-eks
-        awsRegion: eu-west-1
+        
+        # Use existing SA created by Terraform (with IRSA)
+        serviceAccount:
+          create: false
+          name: cluster-autoscaler
+        
         rbac:
           serviceAccount:
-            annotations:
-              eks.amazonaws.com/role-arn: arn:aws:iam::<AWS_ACCOUNT_ID>:role/eks-cluster-autoscaler
+            create: false
+            name: cluster-autoscaler
+
+        # Recommended for EKS
+        extraArgs:
+          skip-nodes-with-local-storage: "false"
+          skip-nodes-with-system-pods: "false"
+          expander: least-waste
+
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
+
   syncPolicy:
     automated:
       prune: true
