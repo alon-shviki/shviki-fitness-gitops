@@ -11,24 +11,28 @@ spec:
     targetRevision: 9.29.1
     helm:
       values: |
+        cloudProvider: aws
         awsRegion: eu-west-1
+
         autoDiscovery:
           clusterName: shviki-fitness-prod-eks
-        
-        # Use existing SA created by Terraform (with IRSA)
+
         serviceAccount:
           create: false
           name: cluster-autoscaler
-        
+
         rbac:
           serviceAccount:
             create: false
             name: cluster-autoscaler
 
         extraArgs:
+          cluster-name: shviki-fitness-prod-eks
+          node-group-auto-discovery: "asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/shviki-fitness-prod-eks"
           skip-nodes-with-local-storage: "false"
           skip-nodes-with-system-pods: "false"
           expander: least-waste
+
 
   destination:
     server: https://kubernetes.default.svc
