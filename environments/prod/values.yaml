@@ -1,0 +1,3 @@
+app:
+  image: "alon2810/shvikifitness"
+  tag: "latest"
