@@ -5,33 +5,40 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  destination:
-    namespace: kube-system
-    server: https://kubernetes.default.svc
-
   source:
-    repoURL: https://kubernetes.github.io/autoscaler
-    chart: cluster-autoscaler
-    targetRevision: 9.29.1
+    repoURL: https://github.com/kubernetes/autoscaler.git
+    targetRevision: master
+    path: charts/cluster-autoscaler
     helm:
-      values: |
-        cloudProvider: aws
-        awsRegion: eu-west-1
-        autoDiscovery:
-          clusterName: shviki-fitness-prod-eks
-
-        serviceAccount:
-          create: false
-          name: cluster-autoscaler
-
-        extraArgs:
-          cluster-name: shviki-fitness-prod-eks
-          node-group-auto-discovery: "asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/shviki-fitness-prod-eks"
-          skip-nodes-with-local-storage: "false"
-          skip-nodes-with-system-pods: "false"
-          expander: least-waste
-
+      parameters:
+        - name: autoDiscovery.clusterName
+          value: shviki-fitness-prod-eks        # match module.eks.cluster_name
+        - name: awsRegion
+          value: eu-west-1
+        - name: rbac.serviceAccount.create
+          value: "true"
+        - name: rbac.serviceAccount.name
+          value: "cluster-autoscaler"
+        - name: rbac.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn
+          value: arn:aws:iam::<YOUR_ACCOUNT_ID>:role/prod-cluster-autoscaler
+        - name: cloudProvider
+          value: aws
+        - name: image.tag
+          value: v1.30.0
+        - name: extraArgs.balance-similar-node-groups
+          value: "true"
+        - name: extraArgs.skip-nodes-with-system-pods
+          value: "false"
+        - name: extraArgs.expander
+          value: least-waste
+        - name: extraArgs.v
+          value: "4"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
