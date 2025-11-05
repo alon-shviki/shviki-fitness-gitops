@@ -5,16 +5,20 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
     repoURL: https://github.com/kingofgrow/shviki-fitness
     targetRevision: main
-    path: helm
+    path: helm-chart
+
   destination:
     server: https://kubernetes.default.svc
     namespace: sh
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - PruneLast=true
