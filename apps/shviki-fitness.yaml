@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Kingofgrow/shviki_fitness
+    repoURL: https://github.com/kingofgrow/shviki-fitness
     targetRevision: main
     path: helm
   destination:
