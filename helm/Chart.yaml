@@ -1,0 +1,6 @@
+apiVersion: v2
+name: shviki-fitness-gitops
+description: Helm umbrella chart for deploying ShvikiFitness workloads and system components
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

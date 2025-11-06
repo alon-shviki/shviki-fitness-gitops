@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-autoscaler
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.apps.clusterAutoscaler.repoURL }}
+    chart: {{ .Values.apps.clusterAutoscaler.chart }}
+    targetRevision: {{ .Values.apps.clusterAutoscaler.version }}
+    helm:
+      valuesObject:
+        autoDiscovery:
+          clusterName: {{ .Values.global.clusterName }}
+        awsRegion: {{ .Values.global.awsRegion }}
+        nodeSelector: {{ toYaml .Values.systemNodeSelector.nodeSelector | nindent 8 }}
+        tolerations: {{ toYaml .Values.systemNodeSelector.tolerations | nindent 8 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
