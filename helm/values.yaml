@@ -30,7 +30,7 @@ workloadNodeSelector:
 apps:
   shvikiFitness:
     repoURL: "https://github.com/Kingofgrow/shviki-fitness"
-    path: "helm"
+    path: "helm/helm-chart"
     targetRevision: "main"
 
   monitoring:
