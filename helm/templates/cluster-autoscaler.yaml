@@ -14,6 +14,10 @@ spec:
         autoDiscovery:
           clusterName: {{ .Values.global.clusterName }}
         awsRegion: {{ .Values.global.awsRegion }}
+        rbac:
+          serviceAccount:
+            create: false
+            name: cluster-autoscaler
         nodeSelector: {{ toYaml .Values.systemNodeSelector.nodeSelector | nindent 8 }}
         tolerations: {{ toYaml .Values.systemNodeSelector.tolerations | nindent 8 }}
   destination:
