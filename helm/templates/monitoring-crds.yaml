@@ -26,6 +26,20 @@ spec:
         prometheusOperator:
           createCustomResource: false
           cleanupCustomResourceBeforeInstall: false
+
+        # ====================================================
+        # Disable everything else — install CRDs only
+        # ====================================================
+        kubeStateMetrics:
+          enabled: false
+        nodeExporter:
+          enabled: false
+        alertmanager:
+          enabled: false
+        grafana:
+          enabled: false
+        prometheus:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
