@@ -1,11 +1,8 @@
 # ============================================================
 # Argo CD Application: monitoring
 # Purpose:
-#   Deploys Prometheus + Grafana (kube-prometheus-stack)
-#   after CRDs are installed.
-# Notes:
-#   • syncWave: 0 → runs after monitoring-crds
-#   • Uses system nodes (as defined in values.yaml)
+#   Deploys Prometheus, Grafana, Alertmanager, Node Exporter, etc.
+#   after CRDs have been installed.
 # ============================================================
 
 apiVersion: argoproj.io/v1alpha1
@@ -21,10 +18,6 @@ spec:
     targetRevision: 56.6.2
     helm:
       valuesObject:
-        crds:
-          enabled: false
-        prometheusOperator:
-          createCustomResource: true
         nodeSelector: {{ toYaml .Values.systemNodeSelector.nodeSelector | nindent 8 }}
         tolerations: {{ toYaml .Values.systemNodeSelector.tolerations | nindent 8 }}
   destination:
@@ -36,5 +29,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-  # 👇 ensures it runs after CRDs
-  syncWave: "0"
+  syncWave: "0"   # 👈 runs after CRDs are ready
