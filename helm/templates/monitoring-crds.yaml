@@ -1,17 +1,17 @@
 # ============================================================
-# Argo CD Application: monitoring
+# Argo CD Application: monitoring-crds
 # Purpose:
-#   Deploys Prometheus + Grafana (kube-prometheus-stack)
-#   after CRDs are installed.
+#   Installs Prometheus Operator CRDs (CustomResourceDefinitions)
+#   before the main monitoring stack.
 # Notes:
-#   • syncWave: 0 → runs after monitoring-crds
-#   • Uses system nodes (as defined in values.yaml)
+#   • Runs first (syncWave: -1)
+#   • Ensures CRDs exist before Prometheus/Grafana deployment
 # ============================================================
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: monitoring
+  name: monitoring-crds
   namespace: argocd
 spec:
   project: default
@@ -22,11 +22,10 @@ spec:
     helm:
       valuesObject:
         crds:
-          enabled: false
+          enabled: true
         prometheusOperator:
-          createCustomResource: true
-        nodeSelector: {{ toYaml .Values.systemNodeSelector.nodeSelector | nindent 8 }}
-        tolerations: {{ toYaml .Values.systemNodeSelector.tolerations | nindent 8 }}
+          createCustomResource: false
+          cleanupCustomResourceBeforeInstall: false
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -36,5 +35,5 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-  # 👇 ensures it runs after CRDs
-  syncWave: "0"
+  # 👇 ensures CRDs are installed before the main monitoring app
+  syncWave: "-1"
