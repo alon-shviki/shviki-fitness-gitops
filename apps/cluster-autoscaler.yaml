@@ -5,40 +5,30 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
-    repoURL: https://github.com/kubernetes/autoscaler.git
-    targetRevision: master
-    path: charts/cluster-autoscaler
+    repoURL: https://kubernetes.github.io/autoscaler
+    chart: cluster-autoscaler
+    targetRevision: 9.29.1
     helm:
-      parameters:
-        - name: autoDiscovery.clusterName
-          value: shviki-fitness-prod-eks        # match module.eks.cluster_name
-        - name: awsRegion
-          value: eu-west-1
-        - name: rbac.serviceAccount.create
-          value: "true"
-        - name: rbac.serviceAccount.name
-          value: "cluster-autoscaler"
-        - name: rbac.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn
-          value: arn:aws:iam::<YOUR_ACCOUNT_ID>:role/prod-cluster-autoscaler
-        - name: cloudProvider
-          value: aws
-        - name: image.tag
-          value: v1.30.0
-        - name: extraArgs.balance-similar-node-groups
-          value: "true"
-        - name: extraArgs.skip-nodes-with-system-pods
-          value: "false"
-        - name: extraArgs.expander
-          value: least-waste
-        - name: extraArgs.v
-          value: "4"
+      valueFiles:
+        - ../../environments/prod/values.yaml   # 👈 still using prod
+      valuesObject:
+        autoDiscovery:
+          clusterName: shviki-fitness-prod-eks
+        awsRegion: eu-west-1
+        rbac:
+          serviceAccount:
+            create: false
+            name: cluster-autoscaler
+        nodeSelector: {{ .Values.systemNodeSelector.nodeSelector }}
+        tolerations: {{ .Values.systemNodeSelector.tolerations }}
+
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true

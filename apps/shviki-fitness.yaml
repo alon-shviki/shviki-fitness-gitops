@@ -7,9 +7,12 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/kingofgrow/shviki-fitness
+    repoURL: https://github.com/Kingofgrow/shviki-fitness
     targetRevision: main
-    path: helm/helm-chart   # 👈 matches your real folder structure
+    path: helm/helm-chart
+    helm:
+      valueFiles:
+        - ../../environments/prod/values.yaml   
 
   destination:
     server: https://kubernetes.default.svc

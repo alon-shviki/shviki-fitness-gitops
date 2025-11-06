@@ -5,16 +5,28 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: kube-prometheus-stack
-    targetRevision: 61.2.0
+    targetRevision: 65.1.0
+    helm:
+      valueFiles:
+        - ../../environments/prod/values.yaml   # 👈 use same prod values
+      valuesObject:
+        prometheus:
+          prometheusSpec:
+            nodeSelector: {{ .Values.systemNodeSelector.nodeSelector }}
+            tolerations: {{ .Values.systemNodeSelector.tolerations }}
+        grafana:
+          nodeSelector: {{ .Values.systemNodeSelector.nodeSelector }}
+          tolerations: {{ .Values.systemNodeSelector.tolerations }}
+
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
