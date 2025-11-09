@@ -37,9 +37,29 @@ apps:
     repoURL: "https://prometheus-community.github.io/helm-charts"
     chart: "kube-prometheus-stack"
     version: "61.2.0"
+    valuesObject:
+      grafana:
+        adminPassword: admin
+        service:
+          type: LoadBalancer
+        persistence:
+          enabled: true
+          size: 2Gi
+      prometheus:
+        prometheusSpec:
+          retention: 7d
+          scrapeInterval: 30s
+          evaluationInterval: 30s
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: gp3-ebs
+                accessModes: ["ReadWriteOnce"]
+                resources:
+                  requests:
+                    storage: 10Gi
 
   clusterAutoscaler:
     repoURL: "https://kubernetes.github.io/autoscaler"
     chart: "cluster-autoscaler"
     version: "9.29.1"
-
