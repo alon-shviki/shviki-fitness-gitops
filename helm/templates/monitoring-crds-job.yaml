@@ -14,56 +14,58 @@ spec:
         - name: apply-crds
           image: bitnami/kubectl:latest
           command:
-            - /bin/sh
+            - sh
             - -c
             - |
               set -e
               echo "Applying Prometheus Operator CRDs"
 
-              # Apply core CRDs safely
+              # Core CRDs (lightweight)
               for crd in alertmanagers prometheusrules servicemonitors podmonitors probes scrapeconfigs; do
-                kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.67.1/example/prometheus-operator-crd/monitoring.coreos.com_${crd}.yaml || true
+                echo "Applying CRD: $crd"
+                kubectl apply -f "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.67.1/example/prometheus-operator-crd/monitoring.coreos.com_${crd}.yaml" || true
               done
 
-              # Apply trimmed CRDs for prometheuses + prometheusagents
-              kubectl apply -f - <<EOF
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  name: prometheuses.monitoring.coreos.com
-spec:
-  group: monitoring.coreos.com
-  scope: Namespaced
-  names:
-    kind: Prometheus
-    plural: prometheuses
-  versions:
-    - name: v1
-      served: true
-      storage: true
-      schema:
-        openAPIV3Schema:
-          type: object
-          x-kubernetes-preserve-unknown-fields: true
----
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  name: prometheusagents.monitoring.coreos.com
-spec:
-  group: monitoring.coreos.com
-  scope: Namespaced
-  names:
-    kind: PrometheusAgent
-    plural: prometheusagents
-  versions:
-    - name: v1
-      served: true
-      storage: true
-      schema:
-        openAPIV3Schema:
-          type: object
-          x-kubernetes-preserve-unknown-fields: true
-EOF
+              # Trimmed prometheuses + prometheusagents (no giant annotations)
+              echo "Applying trimmed prometheuses + prometheusagents CRDs"
+              cat <<EOF | kubectl apply -f -
+              apiVersion: apiextensions.k8s.io/v1
+              kind: CustomResourceDefinition
+              metadata:
+                name: prometheuses.monitoring.coreos.com
+              spec:
+                group: monitoring.coreos.com
+                scope: Namespaced
+                names:
+                  kind: Prometheus
+                  plural: prometheuses
+                versions:
+                  - name: v1
+                    served: true
+                    storage: true
+                    schema:
+                      openAPIV3Schema:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+              ---
+              apiVersion: apiextensions.k8s.io/v1
+              kind: CustomResourceDefinition
+              metadata:
+                name: prometheusagents.monitoring.coreos.com
+              spec:
+                group: monitoring.coreos.com
+                scope: Namespaced
+                names:
+                  kind: PrometheusAgent
+                  plural: prometheusagents
+                versions:
+                  - name: v1
+                    served: true
+                    storage: true
+                    schema:
+                      openAPIV3Schema:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+              EOF
 
-              echo "✅ CRDs applied successfully"
+              echo "✅ All Prometheus CRDs applied successfully"
