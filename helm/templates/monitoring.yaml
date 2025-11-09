@@ -5,8 +5,7 @@ kind: Application
 metadata:
   name: monitoring
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
+  # REMOVED the sync-wave annotation
 spec:
   project: default
   destination:
@@ -18,9 +17,10 @@ spec:
     targetRevision: {{ .Values.apps.monitoring.version }}
     helm:
       values: |
-        # 1. CRD AUTOMATION:
+        # 1. CRD FIX: Enable CRD installation
+        # The app will now manage its own CRDs.
         crds:
-          enabled: false
+          enabled: true
 
         # 2. SYSTEM NODE PLACEMENT:
         prometheus-operator:
@@ -35,7 +35,7 @@ spec:
           tolerations:
             {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 12 }}
 
-        # 3. USER'S VALUES (from your context)
+        # 3. USER'S VALUES
         grafana:
           adminPassword: admin
           service:
@@ -94,3 +94,6 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    # --- THIS IS THE FINAL FIX ---
+    # Use ServerSideApply to fix the CRD schema errors and 256KiB size limit
+    - ServerSideApply=true
