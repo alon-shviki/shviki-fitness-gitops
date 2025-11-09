@@ -1,58 +1,31 @@
-# ============================================================
-# Argo CD Application - Monitoring (Prometheus + Grafana)
-# Production Safe Version (skip CRDs)
-# ============================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: monitoring
   namespace: argocd
 spec:
-  project: default
   destination:
-    server: https://kubernetes.default.svc
     namespace: monitoring
+    server: https://kubernetes.default.svc
+  project: default
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: kube-prometheus-stack
-    targetRevision: "56.6.2"
+    targetRevision: 61.2.0
     helm:
-      releaseName: monitoring
-      skipCrds: true             # 👈 avoids large CRD annotation errors
       values: |
         grafana:
-          adminUser: admin
-          adminPassword: admin
-          service:
-            type: LoadBalancer
-          persistence:
-            enabled: true
-            size: 2Gi
+          enabled: false
         prometheus:
           prometheusSpec:
-            serviceMonitorSelectorNilUsesHelmValues: false
-            podMonitorSelectorNilUsesHelmValues: false
-            storageSpec:
-              volumeClaimTemplate:
-                spec:
-                  accessModes: ["ReadWriteOnce"]
-                  resources:
-                    requests:
-                      storage: 10Gi
-                  storageClassName: gp3-ebs
-        alertmanager:
-          alertmanagerSpec:
-            replicas: 1
-        nodeSelector:
-          role: system
-        tolerations:
-          - key: "dedicated"
-            operator: "Equal"
-            value: "system"
-            effect: "NoSchedule"
+            securityContext:
+              runAsUser: 65534
+              fsGroup: 65534
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true      # 👈 auto-create “monitoring” namespace
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
