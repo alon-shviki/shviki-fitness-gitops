@@ -12,13 +12,12 @@ apps:
   monitoring:
     repoURL: "https://prometheus-community.github.io/helm-charts"
     chart: "kube-prometheus-stack"
-    version: "61.2.0"
+    version: "79.4.1" # Was 61.2.0
 
   clusterAutoscaler:
     repoURL: "https://kubernetes.github.io/autoscaler"
     chart: "cluster-autoscaler"
     version: "9.29.1"
-
 # ------------------------------------------------------------
 # Global Project Configuration
 # ------------------------------------------------------------

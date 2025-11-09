@@ -5,7 +5,7 @@ kind: Application
 metadata:
   name: monitoring
   namespace: argocd
-  # REMOVED the sync-wave annotation
+  # We remove the sync-wave annotation
 spec:
   project: default
   destination:
@@ -14,15 +14,16 @@ spec:
   source:
     repoURL: {{ .Values.apps.monitoring.repoURL }}
     chart: {{ .Values.apps.monitoring.chart }}
+    # This will now pull in "79.4.1" from your values.yaml
     targetRevision: {{ .Values.apps.monitoring.version }}
     helm:
       values: |
-        # 1. CRD FIX: Enable CRD installation
-        # The app will now manage its own CRDs.
+        # 1. CRD FIX: Enable CRD installation.
+        # The app will now manage its own CRDs correctly.
         crds:
           enabled: true
 
-        # 2. SYSTEM NODE PLACEMENT:
+        # 2. SYSTEM NODE PLACEMENT: (Your existing, correct config)
         prometheus-operator:
           nodeSelector:
             {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 12 }}
@@ -95,5 +96,7 @@ spec:
     syncOptions:
     - CreateNamespace=true
     # --- THIS IS THE FINAL FIX ---
-    # Use ServerSideApply to fix the CRD schema errors and 256KiB size limit
+    # Use ServerSideApply to fix all CRD-related errors
     - ServerSideApply=true
+    # Prune=true to clean up any old, bad objects
+    - Prune=true
