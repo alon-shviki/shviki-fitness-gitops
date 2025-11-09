@@ -1,5 +1,6 @@
 # ============================================================
 # Argo CD Application - Monitoring (Prometheus + Grafana)
+# Production Safe Version (skip CRDs)
 # ============================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -12,11 +13,12 @@ spec:
     server: https://kubernetes.default.svc
     namespace: monitoring
   source:
-    repoURL: {{ .Values.apps.monitoring.repoURL }}
-    chart: {{ .Values.apps.monitoring.chart }}
-    targetRevision: {{ .Values.apps.monitoring.version }}
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: "56.6.2"
     helm:
       releaseName: monitoring
+      skipCrds: true             # 👈 avoids large CRD annotation errors
       values: |
         grafana:
           adminUser: admin
@@ -30,16 +32,27 @@ spec:
           prometheusSpec:
             serviceMonitorSelectorNilUsesHelmValues: false
             podMonitorSelectorNilUsesHelmValues: false
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 10Gi
+                  storageClassName: gp3-ebs
         alertmanager:
           alertmanagerSpec:
             replicas: 1
         nodeSelector:
-          {{- toYaml .Values.systemNodeSelector.nodeSelector | nindent 10 }}
+          role: system
         tolerations:
-          {{- toYaml .Values.systemNodeSelector.tolerations | nindent 10 }}
+          - key: "dedicated"
+            operator: "Equal"
+            value: "system"
+            effect: "NoSchedule"
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=true      # 👈 auto-create “monitoring” namespace
