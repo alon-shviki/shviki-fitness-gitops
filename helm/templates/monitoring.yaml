@@ -1,3 +1,10 @@
+# ============================================================
+# Argo CD Application: Monitoring Stack
+# Description:
+# Deploys Prometheus + Grafana + Alertmanager using the
+# local kube-prometheus-stack chart stored in this repo.
+# ============================================================
+
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -6,9 +13,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 61.2.0
-    chart: kube-prometheus-stack
+    repoURL: https://github.com/Kingofgrow/shviki_fitness_gitops
+    targetRevision: main
+    path: helm/kube-prometheus-stack
     helm:
       values: |
         grafana:
@@ -29,6 +36,16 @@ spec:
                   resources:
                     requests:
                       storage: 10Gi
+        alertmanager:
+          alertmanagerSpec:
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: gp3-ebs
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 2Gi
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
