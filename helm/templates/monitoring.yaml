@@ -1,12 +1,9 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: monitoring
+  name: monitoring-stack
   namespace: argocd
 spec:
-  destination:
-    namespace: monitoring
-    server: https://kubernetes.default.svc
   project: default
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
@@ -15,12 +12,19 @@ spec:
     helm:
       values: |
         grafana:
-          enabled: false
+          enabled: true
+          ingress:
+            enabled: true
+            hosts:
+              - grafana.yourdomain.com    # change to your DNS name
         prometheus:
           prometheusSpec:
             securityContext:
               runAsUser: 65534
               fsGroup: 65534
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
   syncPolicy:
     automated:
       prune: true
@@ -28,4 +32,3 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - RespectIgnoreDifferences=true
