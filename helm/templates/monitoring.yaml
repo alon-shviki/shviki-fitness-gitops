@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 61.2.0        # latest stable version
-    chart: kube-prometheus-stack
+    repoURL: https://github.com/Kingofgrow/shviki_fitness_gitops
+    path: helm/kube-prometheus-stack
+    targetRevision: main
     helm:
       values: |
         grafana:
