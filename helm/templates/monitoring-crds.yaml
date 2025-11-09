@@ -6,6 +6,7 @@ metadata:
   name: monitoring-crds
   namespace: argocd
   annotations:
+    # --- WAVE 0: Sync this application first ---
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
@@ -13,15 +14,35 @@ spec:
     server: https://kubernetes.default.svc
     namespace: monitoring
   source:
+    # Use the SAME chart as the main monitoring app
     repoURL: {{ .Values.apps.monitoring.repoURL }}
-    chart: "prometheus-operator-crds"
-    targetRevision: "1.1.0"
+    chart: {{ .Values.apps.monitoring.chart }}
+    targetRevision: {{ .Values.apps.monitoring.version }}
+    helm:
+      values: |
+        # 1. Install the CRDs
+        crds:
+          enabled: true
+        
+        # 2. Disable EVERYTHING else
+        prometheus-operator:
+          enabled: false
+        prometheus:
+          enabled: false
+        alertmanager:
+          enabled: false
+        grafana:
+          enabled: false
+        kube-state-metrics:
+          enabled: false
+        prometheus-node-exporter:
+          enabled: false
+  
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-    # --- THIS IS THE FIX ---
-    # Use Server-Side Apply to avoid the 256KiB annotation limit on large CRDs
+    # Use Server-Side Apply to avoid the 256KiB annotation limit
     - ServerSideApply=true
