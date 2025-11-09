@@ -10,7 +10,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: monitoring           # 👈 will be auto-created
+    namespace: monitoring
   source:
     repoURL: {{ .Values.apps.monitoring.repoURL }}
     chart: {{ .Values.apps.monitoring.chart }}
@@ -33,7 +33,6 @@ spec:
         alertmanager:
           alertmanagerSpec:
             replicas: 1
-        # Optional: place monitoring pods on system nodes
         nodeSelector:
           {{- toYaml .Values.systemNodeSelector.nodeSelector | nindent 10 }}
         tolerations:
@@ -43,4 +42,4 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true   # 👈 ensures “monitoring” namespace auto-created
+      - CreateNamespace=true
