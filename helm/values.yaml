@@ -1,8 +1,27 @@
-# ============================================================
-# Unified Helm Values - Shviki Fitness
-# No external environments, all configs centralized
-# ============================================================
+# FILE: shviki-fitness-gitops/helm/values.yaml
 
+# ------------------------------------------------------------
+# Argo CD Application Definitions
+# ------------------------------------------------------------
+apps:
+  shvikiFitness:
+    repoURL: "https://github.com/Kingofgrow/shviki-fitness"
+    path: "helm/helm-chart"
+    targetRevision: "main"
+
+  monitoring:
+    repoURL: "https://prometheus-community.github.io/helm-charts"
+    chart: "kube-prometheus-stack"
+    version: "61.2.0"
+
+  clusterAutoscaler:
+    repoURL: "https://kubernetes.github.io/autoscaler"
+    chart: "cluster-autoscaler"
+    version: "9.29.1"
+
+# ------------------------------------------------------------
+# Global Project Configuration
+# ------------------------------------------------------------
 global:
   clusterName: shviki-fitness-prod-eks
   awsRegion: eu-west-1
@@ -23,43 +42,3 @@ systemNodeSelector:
 workloadNodeSelector:
   nodeSelector:
     role: workload
-
-# ------------------------------------------------------------
-# App definitions (for Argo CD Applications)
-# ------------------------------------------------------------
-apps:
-  shvikiFitness:
-    repoURL: "https://github.com/Kingofgrow/shviki-fitness"
-    path: "helm/helm-chart"
-    targetRevision: "main"
-
-  monitoring:
-    repoURL: "https://prometheus-community.github.io/helm-charts"
-    chart: "kube-prometheus-stack"
-    version: "61.2.0"
-    valuesObject:
-      grafana:
-        adminPassword: admin
-        service:
-          type: LoadBalancer
-        persistence:
-          enabled: true
-          size: 2Gi
-      prometheus:
-        prometheusSpec:
-          retention: 7d
-          scrapeInterval: 30s
-          evaluationInterval: 30s
-          storageSpec:
-            volumeClaimTemplate:
-              spec:
-                storageClassName: gp3-ebs
-                accessModes: ["ReadWriteOnce"]
-                resources:
-                  requests:
-                    storage: 10Gi
-
-  clusterAutoscaler:
-    repoURL: "https://kubernetes.github.io/autoscaler"
-    chart: "cluster-autoscaler"
-    version: "9.29.1"

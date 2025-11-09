@@ -1,17 +1,41 @@
+# FILE: shviki-fitness-gitops/helm/templates/monitoring.yaml
+
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: monitoring
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
   source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    chart: kube-prometheus-stack
-    targetRevision: 61.2.0
+    repoURL: {{ .Values.apps.monitoring.repoURL }}
+    chart: {{ .Values.apps.monitoring.chart }}
+    targetRevision: {{ .Values.apps.monitoring.version }}
     helm:
-      skipCrds: true
       values: |
+        # 1. CRD AUTOMATION:
+        crds:
+          enabled: false
+
+        # 2. SYSTEM NODE PLACEMENT:
+        prometheus-operator:
+          nodeSelector:
+            {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 12 }}
+          tolerations:
+            {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 12 }}
+
+        kube-state-metrics:
+          nodeSelector:
+            {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 12 }}
+          tolerations:
+            {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 12 }}
+
+        # 3. USER'S VALUES (from your context)
         grafana:
           adminPassword: admin
           service:
@@ -19,9 +43,23 @@ spec:
           persistence:
             enabled: true
             size: 2Gi
+          nodeSelector:
+            {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 12 }}
+          tolerations:
+            {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 12 }}
+
+        alertmanager:
+          alertmanagerSpec:
+            nodeSelector:
+              {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 14 }}
+            tolerations:
+              {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 14 }}
+
         prometheus:
           prometheusSpec:
             retention: 7d
+            scrapeInterval: 30s
+            evaluationInterval: 30s
             storageSpec:
               volumeClaimTemplate:
                 spec:
@@ -30,12 +68,29 @@ spec:
                   resources:
                     requests:
                       storage: 10Gi
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: monitoring
+            
+            nodeSelector:
+              {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 14 }}
+            tolerations:
+              {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 14 }}
+
+            # 4. PROMETHEUS STABILITY FIX:
+            startupProbe:
+              enabled: true
+              failureThreshold: 60
+              periodSeconds: 5
+              timeoutSeconds: 3
+              initialDelaySeconds: 15
+            
+            readinessProbe:
+              failureThreshold: 10
+              periodSeconds: 5
+              timeoutSeconds: 3
+              initialDelaySeconds: 15
+  
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true

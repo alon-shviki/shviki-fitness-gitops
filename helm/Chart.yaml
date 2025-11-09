@@ -1,6 +1,6 @@
+# FILE: shviki-fitness-gitops/helm/Chart.yaml
+
 apiVersion: v2
 name: shviki-fitness-gitops
-description: Helm umbrella chart for deploying ShvikiFitness workloads and system components
-type: application
-version: 0.1.0
-appVersion: "1.0.0"
+description: Argo CD App of Apps for ShvikiFitness Capstone
+version: 1.0.0

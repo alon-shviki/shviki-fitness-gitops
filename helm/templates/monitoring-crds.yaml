@@ -1,0 +1,24 @@
+# FILE: shviki-fitness-gitops/helm/templates/monitoring-crds.yaml
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-crds
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  source:
+    repoURL: {{ .Values.apps.monitoring.repoURL }}
+    chart: "prometheus-operator-crds"
+    targetRevision: "1.1.0"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
