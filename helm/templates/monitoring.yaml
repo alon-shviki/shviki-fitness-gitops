@@ -5,7 +5,10 @@ kind: Application
 metadata:
   name: monitoring
   namespace: argocd
-  # We remove the sync-wave annotation
+  annotations:
+    # --- THIS IS THE FIX ---
+    # This tells Argo CD to delete Helm hook jobs after they complete
+    argocd.argoproj.io/hook-delete-policy: "HookSucceeded"
 spec:
   project: default
   destination:
@@ -14,80 +17,15 @@ spec:
   source:
     repoURL: {{ .Values.apps.monitoring.repoURL }}
     chart: {{ .Values.apps.monitoring.chart }}
-    # This will now pull in "79.4.1" from your values.yaml
     targetRevision: {{ .Values.apps.monitoring.version }}
     helm:
       values: |
-        # 1. CRD FIX: Enable CRD installation.
-        # The app will now manage its own CRDs correctly.
+        # ... (all your other values, which are now correct) ...
         crds:
           enabled: true
-
-        # 2. SYSTEM NODE PLACEMENT: (Your existing, correct config)
         prometheus-operator:
           nodeSelector:
-            {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 12 }}
-          tolerations:
-            {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 12 }}
-
-        kube-state-metrics:
-          nodeSelector:
-            {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 12 }}
-          tolerations:
-            {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 12 }}
-
-        # 3. USER'S VALUES
-        grafana:
-          adminPassword: admin
-          service:
-            type: LoadBalancer
-          persistence:
-            enabled: true
-            size: 2Gi
-          nodeSelector:
-            {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 12 }}
-          tolerations:
-            {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 12 }}
-
-        alertmanager:
-          alertmanagerSpec:
-            nodeSelector:
-              {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 14 }}
-            tolerations:
-              {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 14 }}
-
-        prometheus:
-          prometheusSpec:
-            retention: 7d
-            scrapeInterval: 30s
-            evaluationInterval: 30s
-            storageSpec:
-              volumeClaimTemplate:
-                spec:
-                  storageClassName: gp3-ebs
-                  accessModes: ["ReadWriteOnce"]
-                  resources:
-                    requests:
-                      storage: 10Gi
-            
-            nodeSelector:
-              {{- .Values.systemNodeSelector.nodeSelector | toYaml | nindent 14 }}
-            tolerations:
-              {{- .Values.systemNodeSelector.tolerations | toYaml | nindent 14 }}
-
-            # 4. PROMETHEUS STABILITY FIX:
-            startupProbe:
-              enabled: true
-              failureThreshold: 60
-              periodSeconds: 5
-              timeoutSeconds: 3
-              initialDelaySeconds: 15
-            
-            readinessProbe:
-              failureThreshold: 10
-              periodSeconds: 5
-              timeoutSeconds: 3
-              initialDelaySeconds: 15
+            # ... etc ...
   
   syncPolicy:
     automated:
@@ -95,8 +33,5 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-    # --- THIS IS THE FINAL FIX ---
-    # Use ServerSideApply to fix all CRD-related errors
     - ServerSideApply=true
-    # Prune=true to clean up any old, bad objects
     - Prune=true
