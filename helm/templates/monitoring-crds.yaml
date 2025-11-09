@@ -6,7 +6,6 @@ metadata:
   name: monitoring-crds
   namespace: argocd
   annotations:
-    # --- WAVE 0: Sync this application first ---
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
@@ -14,7 +13,6 @@ spec:
     server: https://kubernetes.default.svc
     namespace: monitoring
   source:
-    # Use the SAME chart as the main monitoring app
     repoURL: {{ .Values.apps.monitoring.repoURL }}
     chart: {{ .Values.apps.monitoring.chart }}
     targetRevision: {{ .Values.apps.monitoring.version }}
@@ -24,8 +22,8 @@ spec:
         crds:
           enabled: true
         
-        # 2. Disable EVERYTHING else
-        prometheus-operator:
+        # 2. Disable EVERYTHING else (this is the correct syntax)
+        prometheusOperator:
           enabled: false
         prometheus:
           enabled: false
@@ -37,6 +35,8 @@ spec:
           enabled: false
         prometheus-node-exporter:
           enabled: false
+        defaultRules:
+          create: false
   
   syncPolicy:
     automated:
@@ -44,5 +44,7 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-    # Use Server-Side Apply to avoid the 256KiB annotation limit
+    # ServerSideApply is still needed for the large CRDs
     - ServerSideApply=true
+    # Prune=true will delete the extra pods (like 'monitoring-crds-kube-prome-operator')
+    - Prune=true
