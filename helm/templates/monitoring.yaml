@@ -20,6 +20,7 @@ spec:
       values: |
         # ... (all your values are correct) ...
 
+  # ... (all your other correct config) ...
   syncPolicy:
     automated:
       prune: true
@@ -30,7 +31,6 @@ spec:
     - Prune=true
 
   # --- ADD THIS BLOCK ---
-  # Tell Argo CD to ignore the 'status' field of this one broken CRD
   ignoreDifferences:
   - group: apiextensions.k8s.io
     kind: CustomResourceDefinition
