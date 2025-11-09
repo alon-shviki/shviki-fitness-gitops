@@ -13,7 +13,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Kingofgrow/shviki_fitness_gitops
+    repoURL: https://github.com/Kingofgrow/shviki-fitness-gitops
     targetRevision: main
     path: helm/kube-prometheus-stack
     helm:
