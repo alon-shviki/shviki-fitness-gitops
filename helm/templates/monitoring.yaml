@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: monitoring-stack
+  name: monitoring
   namespace: argocd
 spec:
   project: default
@@ -14,9 +14,7 @@ spec:
         grafana:
           enabled: true
           ingress:
-            enabled: true
-            hosts:
-              - grafana.yourdomain.com    # change to your DNS name
+            enabled: false
         prometheus:
           prometheusSpec:
             securityContext:
