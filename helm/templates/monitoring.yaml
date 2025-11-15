@@ -1,4 +1,8 @@
-# FILE: shviki-fitness-gitops/helm/templates/monitoring.yaml
+# Summary: ArgoCD Application for Monitoring Stack (Prometheus + Grafana)
+# Description:
+# Deploys kube-prometheus-stack using Helm.
+# Includes namespace creation, server-side apply, pruning rules,
+# and CRD difference ignoring for stable sync behavior.
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -18,22 +22,20 @@ spec:
     targetRevision: {{ .Values.apps.monitoring.version }}
     helm:
       values: |
-        # ... (all your values are correct) ...
+        # Monitoring values defined in values.yaml
 
-  # ... (all your other correct config) ...
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
-    - ServerSideApply=true
-    - Prune=true
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - Prune=true
 
-  # --- ADD THIS BLOCK ---
   ignoreDifferences:
-  - group: apiextensions.k8s.io
-    kind: CustomResourceDefinition
-    name: prometheusagents.monitoring.coreos.com
-    jsonPointers:
-    - /status
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: prometheusagents.monitoring.coreos.com
+      jsonPointers:
+        - /status

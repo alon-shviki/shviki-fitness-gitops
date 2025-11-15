@@ -1,4 +1,7 @@
-# FILE: shviki-fitness-gitops/helm/Chart.yaml
+# Summary: Chart Metadata for GitOps App of Apps
+# Description:
+# Defines the Helm metadata for the parent chart that manages
+# all ArgoCD Applications for the ShvikiFitness environment.
 
 apiVersion: v2
 name: shviki-fitness-gitops

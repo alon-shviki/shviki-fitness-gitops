@@ -1,3 +1,8 @@
+# Summary: ArgoCD Application for ShvikiFitness Application
+# Description:
+# Deploys the Flask + MySQL Helm chart for the ShvikiFitness project.
+# Includes workload node placement via valuesObject and automated sync.
+
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,19 +10,22 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
-    repoURL: {{ .Values.apps.shvikiFitness.repoURL }}
-    path: {{ .Values.apps.shvikiFitness.path }}
+    repoURL: {{ .Values.apps.shvikiFitness.repoURL }}         # Git repo with Helm chart
+    path: {{ .Values.apps.shvikiFitness.path }}               # Path to chart inside repo
     targetRevision: {{ .Values.apps.shvikiFitness.targetRevision }}
     helm:
       valuesObject:
         nodeSelector: {{ toYaml .Values.workloadNodeSelector.nodeSelector | nindent 8 }}
+
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ .Values.global.namespace }}
+    namespace: {{ .Values.global.namespace }}                 # App namespace
+
   syncPolicy:
     automated:
-      prune: true
-      selfHeal: true
+      prune: true                                             # Remove old resources
+      selfHeal: true                                          # Auto fix drift
     syncOptions:
-        - CreateNamespace=true
+      - CreateNamespace=true

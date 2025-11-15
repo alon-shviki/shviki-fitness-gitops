@@ -1,3 +1,13 @@
+# Summary: Argo CD Application for Cluster Autoscaler
+# Description:
+# Deploys the Kubernetes Cluster Autoscaler via Helm through Argo CD.
+# Uses values provided from the GitOps values.yaml file, including:
+# - Cluster name for autodiscovery
+# - AWS region
+# - System node selectors and tolerations
+# - Pre-created service account via Terraform (IRSA)
+# This Application ensures automated sync, pruning, and self-healing.
+
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,27 +15,36 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
+  # Helm chart configuration (source of deployment)
   source:
-    repoURL: {{ .Values.apps.clusterAutoscaler.repoURL }}
-    chart: {{ .Values.apps.clusterAutoscaler.chart }}
-    targetRevision: {{ .Values.apps.clusterAutoscaler.version }}
+    repoURL: {{ .Values.apps.clusterAutoscaler.repoURL }}    # Helm repo or Git repo URL
+    chart: {{ .Values.apps.clusterAutoscaler.chart }}        # Chart name (cluster-autoscaler)
+    targetRevision: {{ .Values.apps.clusterAutoscaler.version }}  # Version of the chart
     helm:
       valuesObject:
         autoDiscovery:
-          clusterName: {{ .Values.global.clusterName }}
-        awsRegion: {{ .Values.global.awsRegion }}
+          clusterName: {{ .Values.global.clusterName }}       # EKS cluster name
+        awsRegion: {{ .Values.global.awsRegion }}             # Region for scaling decisions
+
         rbac:
           serviceAccount:
-            create: false
+            create: false                                     # SA created by Terraform (IRSA)
             name: cluster-autoscaler
+
+        # Scheduling rules
         nodeSelector: {{ toYaml .Values.systemNodeSelector.nodeSelector | nindent 8 }}
         tolerations: {{ toYaml .Values.systemNodeSelector.tolerations | nindent 8 }}
+
+  # Where to deploy autoscaler
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
+
+  # Sync policy (full automation)
   syncPolicy:
     automated:
-      prune: true
-      selfHeal: true
+      prune: true                                             # Remove outdated resources
+      selfHeal: true                                          # Fix drift automatically
     syncOptions:
-        - CreateNamespace=true
+      - CreateNamespace=true                                  # Ensure namespace exists
