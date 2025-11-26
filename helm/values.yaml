@@ -10,7 +10,7 @@
 # ------------------------------------------------------------
 apps:
   shvikiFitness:
-    repoURL: "https://github.com/Kingofgrow/shviki-fitness"
+    repoURL: "https://github.com/alon-shviki/shviki-fitness"
     path: "helm/helm-chart"
     targetRevision: "main"
 
