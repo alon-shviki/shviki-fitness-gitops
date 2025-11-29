@@ -41,7 +41,7 @@ An Argo CD App of Apps for deploying the ShvikiFitness application and its relat
 1.  Clone the repository:
 
 ```bash
-git clone <repository_url>
+git clone https://github.com/alon-shviki/shviki-fitness-gitops.git
 cd shviki-fitness-gitops
 ```
 
